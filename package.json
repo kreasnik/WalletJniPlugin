@@ -1,0 +1,21 @@
+{
+  "name": "WalletJniPort",
+  "version": "1.0.0",
+  "description": "WalletJniPort",
+  "cordova": {
+    "id": "WalletJniPort",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kreasnik/WalletJniPlugin.git"
+  },
+  "keywords": [
+    "cordova",
+    "plugin",
+    "phonegap",
+    "ionic"
+  ]
+}
