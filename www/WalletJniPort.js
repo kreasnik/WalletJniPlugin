@@ -1,4 +1,4 @@
-//cordova.define("org-trustnote-smartwallet-WalletPort.WalletPort", function(require, exports, module) {
+cordova.define("cordova-plugin-walletjniport.walletjniport", function(require, exports, module) {
 /**
  * cordova is available under the MIT License (2008).
  * See http://opensource.org/licenses/alphabetical for full text.
@@ -20,4 +20,4 @@
     var walletJniPort = new WalletJniPort();
     module.exports = walletJniPort;
 
-//});
+});

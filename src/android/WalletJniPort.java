@@ -22,12 +22,17 @@ public class WalletJniPort extends CordovaPlugin{
         this.requestArgs = args;
 
         if (action.equals(TEST)) {
-            test();
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    test();
+                }
+            });
         } else {
             return false;
         }
         return true;
     }
+
 
     //JNI
     public native void test();
