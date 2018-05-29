@@ -9,7 +9,7 @@
     <!-- js文件的地址，安装后路径为：plugins/插件Id/src属性值 -->
     <js-module name="WalletJniPort" src="www/WalletJniPort.js">
     <!-- 跟asserts/cordova_plugins.js中填clobbers的值一样 -->
-        <clobbers target="WalletJniPort"/>
+        <clobbers target="cordova.plugins.walletjniport"/>
     </js-module>
     <!-- android -->
     <platform name="android">
@@ -20,8 +20,10 @@
             </feature>
         </config-file>
         <source-file src="src/android/WalletJniPort.java" target-dir="src/com/android/walletport" />
+        <!-- 
         <source-file src="src/android/libwallet_port.so" target-dir="app/libs/armeabi" />
-        <!-- <lib-file src="src/android/libwallet_port.so" /> -->
+        <lib-file src="src/android/libwallet_port.so" /> 
+        -->
     </platform>
     <!-- 其他平台的代码 -->
 </plugin>
