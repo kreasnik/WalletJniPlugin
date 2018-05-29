@@ -12,7 +12,7 @@ public class WalletJniPort extends CordovaPlugin{
     /**
      * Constructor.
      */
-    public WalletPort(){
+    public WalletJniPort(){
 
     }
 
