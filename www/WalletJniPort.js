@@ -29,7 +29,7 @@
             console.log("WalletJniPort.setPassphrase failure: success callback parameter must be a function");
             return;
         }
-        exec(successCallback, errorCallback, "WalletJniPort", "setPassphrase", [passphrase]);
+        exec(successCallback, errorCallback, "WalletJniPort", "setPassphrase", [{"passphrase": passphrase}]);
     };
     //创建助记词
     WalletJniPort.prototype.createMnemonic = function(passphrase, language, number, successCallback, errorCallback){
@@ -103,11 +103,17 @@
             errorCallback,
             "WalletJniPort",
             "derive",
-            [{"passphrase": passphrase, "path": path, "deriveAlgoId": deriveAlgoId}]
+            [{
+                "passphrase": passphrase,
+                "path": path,
+                "deriveAlgoId": deriveAlgoId,
+                "signAlgoId": signAlgoId,
+                "number": number
+            }]
         );
     };
     //签名
-    WalletJniPort.prototype.sign = function(passphrase, path, deriveAlgoId, signAlgoId, transhash, successCallback, errorCallback){
+    WalletJniPort.prototype.sign = function(passphrase, path, deriveAlgoId, signAlgoId, transhash, number, successCallback, errorCallback){
         console.log("WalletJniPort -- sign");
         if (errorCallback == null) {
             errorCallback = function () {
@@ -133,6 +139,7 @@
                 "path": path,
                 "deriveAlgoId": deriveAlgoId,
                 "signAlgoId": signAlgoId,
+                "number": number,
                 "transhash": transhash
             }]
         );
@@ -154,7 +161,7 @@
             console.log("WalletJniPort.deleteWallet failure: success callback parameter must be a function");
             return;
         }
-        exec(successCallback, errorCallback, "WalletJniPort", "deleteWallet", [passphrase]);
+        exec(successCallback, errorCallback, "WalletJniPort", "deleteWallet", [{"passphrase": passphrase}]);
     };
     //测试
     WalletJniPort.prototype.test = function(content){

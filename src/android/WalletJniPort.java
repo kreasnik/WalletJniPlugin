@@ -34,7 +34,7 @@ public class WalletJniPort extends CordovaPlugin{
      * Constructor.
      */
     public WalletJniPort(){
-
+        wallet_init();
     }
 
     @Override
@@ -87,7 +87,9 @@ public class WalletJniPort extends CordovaPlugin{
                 String passphrase = obj.optString(PASSPHRASE);
                 String path = obj.optString(PATH);
                 String deriveAlgoId = obj.optString(DERIVEALGOID);
-                derive(passphrase, path, deriveAlgoId);
+                String signAlgoId = obj.optString(SIGNALGOID);
+                String number = obj.optString(NUMBER);
+                derive(passphrase, path, deriveAlgoId, signAlgoId, number);
             }else {
                 callbackContext.error("User did not specify data to derive");
                 return true;
@@ -99,8 +101,9 @@ public class WalletJniPort extends CordovaPlugin{
                 String path = obj.optString(PATH);
                 String deriveAlgoId = obj.optString(DERIVEALGOID);
                 String signAlgoId = obj.optString(SIGNALGOID);
+                String number = obj.optString(NUMBER);
                 String transhash = obj.optString(TRANSHASH);
-                sign(passphrase, path, deriveAlgoId, signAlgoId, transhash);
+                sign(passphrase, path, deriveAlgoId, signAlgoId, number, transhash);
             }else {
                 callbackContext.error("User did not specify data to sign");
                 return true;
@@ -136,7 +139,7 @@ public class WalletJniPort extends CordovaPlugin{
     public void createMnemonic(final String passphrase, final String language, final String number){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                int ret = create_mnemonic(passphrase, language, number);
+                int ret = create_mnemonic(passphrase, language, Integer.parseInt(number));
                 if(ret == 1){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
@@ -149,7 +152,7 @@ public class WalletJniPort extends CordovaPlugin{
     public void recoveryMnemonic(final String passphrase, final String language, final String number, final String mnemonic){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                int ret = recovery_mnemonic(passphrase, language, number, mnemonic);
+                int ret = recovery_mnemonic(passphrase, language, Integer.parseInt(number), mnemonic);
                 if(ret == 1){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
@@ -159,10 +162,10 @@ public class WalletJniPort extends CordovaPlugin{
         });
     }
 
-    public void derive(final String passphrase, final String path, final String deriveAlgoId){
+    public void derive(final String passphrase, final String path, final String deriveAlgoId, final String signAlgoId, final String number){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                start_derive(passphrase, path, deriveAlgoId, "deriveCallback");
+                start_derive(passphrase, path, Integer.parseInt(deriveAlgoId), Integer.parseInt(signAlgoId), Integer.parseInt(number), "deriveCallback");
             }
         });
     }
@@ -181,10 +184,10 @@ public class WalletJniPort extends CordovaPlugin{
         }
     }
 
-    public void sign(final String passphrase, final String path, final String deriveAlgoId, final String signAlgoId, final String transhash){
+    public void sign(final String passphrase, final String path, final String deriveAlgoId, final String signAlgoId, final String number, final String transhash){
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                start_sign(passphrase, path, deriveAlgoId, signAlgoId, transhash, "signCallback");
+                start_sign(passphrase, path, Integer.parseInt(deriveAlgoId), Integer.parseInt(signAlgoId), Integer.parseInt(number), transhash, "signCallback");
             }
         });
     }
@@ -218,11 +221,13 @@ public class WalletJniPort extends CordovaPlugin{
     }
     //JNI
     public native void test();
+    public native int wallet_init();
+    public native int wallet_deinit();
     public native int set_passphrase(String passphrase);
-    public native int create_mnemonic(String passphrase, String language, String number);
-    public native int recovery_mnemonic(String passphrase, String language, String number, String mnemonic);
-    public native int start_derive(String passphrase, String path, String deriveAlgoId, String callback);
-    public native int start_sign(String passphrase, String path, String deriveAlgoId, String signAlgoId, String transhash, String callback);
+    public native int create_mnemonic(String passphrase, String language, int number);
+    public native int recovery_mnemonic(String passphrase, String language, int number, String mnemonic);
+    public native int start_derive(String passphrase, String path, int deriveAlgoId, int signAlgoId, int number, String callback);
+    public native int start_sign(String passphrase, String path, int deriveAlgoId, int signAlgoId, int number, String transhash, String callback);
     public native int delete_wallet(String passphrase);
     static {
         System.loadLibrary("wallet_port");
