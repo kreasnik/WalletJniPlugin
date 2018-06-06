@@ -20,7 +20,12 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE    := libwallet_port
+
+LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH)/../hw
+
 LOCAL_SRC_FILES := wallet_port.cpp
+
 LOCAL_CERTIFICATE := platform
 LOCAL_SHARED_LIBRARIES := \
 			libhardware \

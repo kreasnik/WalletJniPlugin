@@ -1,7 +1,9 @@
 #ifndef HW_WALLET_H
 #define HW_WALLET_H
 
+#include "typedef.h"
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/cdefs.h>
 #include <hardware/hardware.h>
 #include <hardware/hwcomposer_defs.h>

@@ -16,35 +16,18 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <android/log.h>
-
-typedef signed           char INT8;
-typedef signed short     int  INT16;
-typedef signed           int  INT32;
-
-typedef unsigned           char UINT8;
-typedef unsigned short     int  UINT16;
-typedef unsigned           int  UINT32;
-
-typedef unsigned           char BYTE;
-typedef unsigned short     int  WORD;
-typedef unsigned           int  DWORD;
-typedef unsigned           char * PBYTE;
-typedef unsigned short     int  * PWORD;
-typedef unsigned           int  * PDWORD;
-
-#define TRUE  1
-#define FALSE 0
+#include "typedef.h"
 
 #define UINT_LEN             4
 #define PRIV_KEY_BIT         32
 #define BIP32_SERIALIZED_LEN 78
 #define DATA_LEN		     256
 #define MNEMO_LEN            24
-#define ENTROPY_128         128/8
-#define ENTROPY_160         160/8
-#define ENTROPY_192         192/8
-#define ENTROPY_224         224/8
-#define ENTROPY_256         256/8
+#define ENTROPY_128         (128/8) //12个助记词
+#define ENTROPY_160         (160/8) //15个助记词
+#define ENTROPY_192         (192/8) //18个助记词
+#define ENTROPY_224         (224/8) //21个助记词
+#define ENTROPY_256         (256/8) //24个助记词
 
 #define NODE "dev/spi_node"
 #define IOC_MAGIC           'i'
@@ -88,14 +71,79 @@ typedef enum
 static int fd = 0;
 message_t message;
 
+/** 打开设备
+ *  Returns: 1 success
+ */
 extern int open_dev();
+
+/** 关闭设备
+ *  Returns: 1 success
+ */
 extern int close_dev();
+
+/** 获得熵
+ *  Returns: 1 success
+ *  Out:     entropy: 256位随机数
+ */
 extern int ioc_create_mnemonic(char *entropy);
+
+/** 设置密码
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ */
 extern int ioc_set_passphrase(char *psssphrase);
+
+/** 保存助记词
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ *           language: 助记词语言
+ *           number: 助记词需要的个数
+ *           mnemonic: 需要保存的助记词
+ */
 extern int ioc_save_mnemonic(char *passphrase, char *language, UINT16 number, char *mnemonic);
+
+/** 恢复
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ *           language: 助记词语言
+ *           number: 助记词需要的个数
+ *           mnemonic: 助记词
+ */
 extern int ioc_recovery_mnemonic(char *passphrase, char *language, UINT16 number, char *mnemonic);
-extern int ioc_start_derive(char *passphrase, char *path, UINT16 deriveAlgoId, UINT16 signAlgoId, UINT16 number, char *pubkey);
-extern int ioc_start_sign(char *passphrase, char *path, UINT16 deriveAlgoId, UINT16 signAlgoId, UINT16 number, char *transhash, char *pubkey, char *signhash);
+
+/** 派生
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ *           path: 派生路径
+ *           deriveAlgoId: 派生算法
+ *           signAlgoId: 签名算法
+ *           number: 助记词需要的个数
+ *  Out:     pubkey: 获得派生的序列化公钥
+ */
+extern int ioc_start_derive(char *passphrase, char *path,
+                        UINT16 deriveAlgoId, UINT16 signAlgoId,
+                        UINT16 number, char *pubkey);
+
+/** 签名
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ *           path: 派生路径
+ *           deriveAlgoId: 派生算法
+ *           signAlgoId: 签名算法
+ *           number: 助记词需要的个数
+ *           transhash: 需要签名的摘要
+ *  Out:     pubkey: 获得派生的序列化公钥
+ *           signhash: 签名结果
+ */
+extern int ioc_start_sign(char *passphrase, char *path,
+                        UINT16 deriveAlgoId, UINT16 signAlgoId,
+                        UINT16 number, char *transhash,
+                        char *pubkey, char *signhash);
+
+/** 删除钱包
+ *  Returns: 1 success
+ *  In:      passphrase: 交易密码
+ */
 extern int ioc_delete_wallet(char *passphrase);
 
 #endif //WALLETJNIPLUGIN_IOCTL_WALLET_H

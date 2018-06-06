@@ -14,11 +14,12 @@
 
 const char *mnemonic_from_data(const UINT8 *data, int len, char* language){
 	if (len != PRIV_KEY_BIT) {
+	    LOGD("mnemonic_from_data - must be 32byte");
 		return 0;
 	}
 
-    uint8 checksum[PRIV_KEY_BIT] = {0};
-	uint8 bits[PRIV_KEY_BIT + 1] = {0};
+    UINT8 checksum[PRIV_KEY_BIT] = {0};
+	UINT8 bits[PRIV_KEY_BIT + 1] = {0};
 
 	memcpy(bits, data, len);
 	sha256(bits, ENTROPY_128, checksum);
