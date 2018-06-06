@@ -39,6 +39,12 @@ typedef unsigned           int  * PDWORD;
 #define PRIV_KEY_BIT         32
 #define BIP32_SERIALIZED_LEN 78
 #define DATA_LEN		     256
+#define MNEMO_LEN            24
+#define ENTROPY_128         128/8
+#define ENTROPY_160         160/8
+#define ENTROPY_192         192/8
+#define ENTROPY_224         224/8
+#define ENTROPY_256         256/8
 
 #define NODE "dev/spi_node"
 #define IOC_MAGIC           'i'
