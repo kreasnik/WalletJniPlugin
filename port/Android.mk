@@ -28,6 +28,7 @@ LOCAL_SHARED_LIBRARIES := \
 			libhardware \
             libcutils \
             libdl \
-            liblog
+            liblog \
+            libwallet
 
 include $(BUILD_SHARED_LIBRARY)

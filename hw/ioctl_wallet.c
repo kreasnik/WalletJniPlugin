@@ -28,6 +28,17 @@ int close_dev(){
     return 1;
 }
 
+int big_endian_input(char *data, int index, UINT16 input){
+    data[index] = input & 0x00ff;
+    data[index+1] = (input & 0xff00) >> 8;
+    return 2;
+}
+
+int big_endian_output(char *data, int index, UINT16 *output){
+    *output = data[index] | data[index+1] << 8;
+    return 2;
+}
+
 int ioc_spi_read(){
     memset(&message, 0, sizeof(message));
     if (ioctl(fd, IOC_SPI_READ, &message) < 0){
@@ -46,7 +57,7 @@ int ioc_spi_write(){
 int ioc_create_mnemonic(char *entropy){
     int result = 0;
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_GEN_WALLET;
     message.header.len = 0;
     result = ioc_spi_write();
@@ -62,14 +73,23 @@ int ioc_create_mnemonic(char *entropy){
     }
     return result;
 }
-
+/**
+*   参数顺序
+*   1,UINT16 password_len
+*   2,char* passphrase
+*/
 int ioc_set_passphrase(char *passphrase){
     int result = 0;
+    UINT16 password_len;
+    password_len = strlen(passphrase);
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_SET_PWD;
-    message.header.len = strlen(passphrase);
-    strncpy(message.para, passphrase, strlen(passphrase));
+
+    i += big_endian_input(message.para, i, password_len);
+
+    strncpy(message.para, passphrase, password_len);
+    message.header.len = i + password_len;
     result = ioc_spi_write();
     LOGD("ioc_set_passphrase result = %d\n", result);
     if(result == 1){
@@ -82,22 +102,33 @@ int ioc_set_passphrase(char *passphrase){
     }
     return result;
 }
-
+/**
+*   参数顺序
+*   1,UINT16 number
+*   2,UINT16 password_len
+*   3,UINT16 mne_len
+*   5,char* passphrase
+*   6,char* mnemonic
+*/
 int ioc_save_mnemonic(char *passphrase, char *language, UINT16 number, char *mnemonic){
     int result = 0;
-    UINT16 mne_len;
+    int i = 0;
+    UINT16 password_len, mne_len, language_len;
+    password_len = strlen(passphrase);
     mne_len = strlen(mnemonic);
-    char st[UINT_LEN] = {0};
+
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_SAVE_MNEMONIC;
-    strncpy(message.para, passphrase, strlen(passphrase));
-    sprintf(st, "%d", number);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", mne_len);
-    strncat(message.para, st, sizeof(st));
-    strncat(message.para, mnemonic, strlen(mnemonic));
-    message.header.len = strlen(message.para);
+
+    i += big_endian_input(message.para, i, number);
+    i += big_endian_input(message.para, i, password_len);
+    i += big_endian_input(message.para, i, mne_len);
+
+    strncpy(message.para+i, passphrase, password_len);
+    strncpy(message.para+i+password_len, mnemonic, mne_len);
+    message.header.len = i + password_len + mne_len;
+
     result = ioc_spi_write();
     LOGD("ioc_save_mnemonic result = %d\n", result);
     if(result == 1){
@@ -110,22 +141,33 @@ int ioc_save_mnemonic(char *passphrase, char *language, UINT16 number, char *mne
     }
     return result;
 }
-
+/**
+*   参数顺序
+*   1,UINT16 number
+*   2,UINT16 password_len
+*   3,UINT16 mne_len
+*   4,char* passphrase
+*   5,char* mnemonic
+*/
 int ioc_recovery_mnemonic(char *passphrase, char *language, UINT16 number, char *mnemonic){
     int result = 0;
-    UINT16 mne_len;
+    int i = 0;
+    UINT16 password_len, mne_len, language_len;
+    password_len = strlen(passphrase);
     mne_len = strlen(mnemonic);
-    char st[UINT_LEN] = {0};
+
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_RECOVER_WALLET;
-    strncpy(message.para, passphrase, strlen(passphrase));
-    sprintf(st, "%d", number);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", mne_len);
-    strncat(message.para, st, sizeof(st));
-    strncat(message.para, mnemonic, strlen(mnemonic));
-    message.header.len = strlen(message.para);
+
+    i += big_endian_input(message.para, i, number);
+    i += big_endian_input(message.para, i, password_len);
+    i += big_endian_input(message.para, i, mne_len);
+
+    strncpy(message.para+i, passphrase, password_len);
+    strncpy(message.para+i+password_len, mnemonic, mne_len);
+    message.header.len = i + password_len + mne_len;
+
     result = ioc_spi_write();
     LOGD("ioc_recovery_mnemonic result = %d\n", result);
     if(result == 1){
@@ -138,38 +180,49 @@ int ioc_recovery_mnemonic(char *passphrase, char *language, UINT16 number, char 
     }
     return result;
 }
-
+/**
+*   输入参数顺序
+*   1,UINT16 number
+*   2,UINT16 password_len
+*   3,UINT16 deriveAlgoId
+*   4,UINT16 signAlgoId
+*   5,UINT16 path_len
+*   6,char* passphrase
+*   7,char* path
+*   输出参数顺序
+*   1,UINT16 pubkey_len
+*   2,char* pubkey
+*/
 int ioc_start_derive(char *passphrase, char *path,
                         UINT16 deriveAlgoId, UINT16 signAlgoId,
                         UINT16 number, char *pubkey){
     int result = 0;
-    UINT16 derive_path_len;
+    int i = 0;
+    UINT16 password_len, path_len;
     UINT16 pubkey_len;
-    char st[UINT_LEN] = {0};
-    derive_path_len = strlen(path);
+    password_len = strlen(passphrase)
+    path_len = strlen(path);
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_GET_PUBKEY;
-    strncpy(message.para, passphrase, strlen(passphrase));
-    sprintf(st, "%d", number);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", deriveAlgoId);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", signAlgoId);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", derive_path_len);
-    strncat(message.para, st, sizeof(st));
-    strncat(message.para, path, strlen(path));
-    message.header.len = strlen(message.para);
+
+    i += big_endian_input(message.para, i, number);
+    i += big_endian_input(message.para, i, password_len);
+    i += big_endian_input(message.para, i, deriveAlgoId);
+    i += big_endian_input(message.para, i, signAlgoId);
+    i += big_endian_input(message.para, i, path_len);
+
+    strncpy(message.para+i, passphrase, password_len);
+    strncpy(message.para+i+password_len, path, path_len);
+    message.header.len = i + password_len + path_len;
     result = ioc_spi_write();
     LOGD("ioc_start_derive result = %d\n", result);
     if(result == 1){
         ioc_spi_read();
         if(message.header.is_ready == 0x55 && message.header.id == AT_S2M_GET_PUBKEY_RSP){
-            memset(st, 0, sizeof(st));
-			strncpy(st, message.para, sizeof(st));
-			pubkey_len = atoi(st);
-            strncpy(pubkey, message.para+sizeof(st), pubkey_len);
+            i = 0;
+            i += big_endian_output(message.para, i, &pubkey_len);
+            strncpy(pubkey, message.para+i, pubkey_len);
             result = 1;
         }else{
             result = 0;
@@ -177,49 +230,59 @@ int ioc_start_derive(char *passphrase, char *path,
     }
     return result;
 }
-
+/**
+*   输入参数顺序
+*   1,UINT16 number
+*   2,UINT16 password_len
+*   3,UINT16 deriveAlgoId
+*   4,UINT16 signAlgoId
+*   5,UINT16 path_len
+*   6,UINT16 transhash_len
+*   7,char* passphrase
+*   8,char* path
+*   9,char* transhash
+*   输出参数顺序
+*   1,UINT16 pubkey_len
+*   2,UINT16 signhash_len
+*   3,char* pubkey
+*   4,char* signhash
+*/
 int ioc_start_sign(char *passphrase, char *path,
                     UINT16 deriveAlgoId, UINT16 signAlgoId,
                     UINT16 number, char *transhash,
                     char *pubkey, char *signhash){
     int result = 0;
-    UINT16 derive_path_len;
-    UINT16 trans_hash_len;
-    UINT16 pubkey_len;
-    UINT16 signhash_len;
-    char st[UINT_LEN] = {0};
-    derive_path_len = strlen(path);
-    trans_hash_len = strlen(transhash);
+    int i = 0;
+    UINT16 password_len, path_len, transhash_len;
+    UINT16 pubkey_len, signhash_len;
+    password_len = strlen(passphrase)
+    path_len = strlen(path);
+    transhash_len = strlen(signhash);
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
-    message.header.id = AT_M2S_SIGN_TRANX;
-    strncpy(message.para, passphrase, strlen(passphrase));
-    sprintf(st, "%d", number);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", deriveAlgoId);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", signAlgoId);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", trans_hash_len);
-    strncat(message.para, st, sizeof(st));
-    sprintf(st, "%d", derive_path_len);
-    strncat(message.para, st, sizeof(st));
-    strncat(message.para, transhash, strlen(transhash));
-    strncat(message.para, path, strlen(path));
-    message.header.len = strlen(message.para);
+    message.header.is_ready = 0x55;
+    message.header.id = AT_M2S_GET_PUBKEY;
+
+    i += big_endian_input(message.para, i, number);
+    i += big_endian_input(message.para, i, password_len);
+    i += big_endian_input(message.para, i, deriveAlgoId);
+    i += big_endian_input(message.para, i, signAlgoId);
+    i += big_endian_input(message.para, i, path_len);
+    i += big_endian_input(message.para, i, transhash_len);
+
+    strncpy(message.para+i, passphrase, password_len);
+    strncpy(message.para+i+password_len, path, path_len);
+    strncpy(message.para+i+password_len+path_len, transhash, transhash_len);
+    message.header.len = i + password_len + path_len + transhash_len;
     result = ioc_spi_write();
     LOGD("ioc_start_sign result = %d\n", result);
     if(result == 1){
         ioc_spi_read();
         if(message.header.is_ready == 0x55 && message.header.id == AT_S2M_SIGN_TRANX_RSP){
-            memset(st, 0, sizeof(st));
-			strncpy(st, message.para, sizeof(st));
-			pubkey_len = atoi(st);
-            memset(st, 0, sizeof(st));
-			strncpy(st, message.para+sizeof(st), sizeof(st));
-			signhash_len = atoi(st);
-            strncpy(pubkey, message.para+sizeof(st)*2, pubkey_len);
-            strncpy(signhash, message.para+sizeof(st)*2+pubkey_len, signhash_len);
+            i = 0;
+            i += big_endian_output(message.para, i, &pubkey_len);
+            i += big_endian_output(message.para, i, &signhash_len);
+            strncpy(pubkey, message.para+i, pubkey_len);
+            strncpy(signhash, message.para+i+pubkey_len, signhash_len);
             result = 1;
         }else{
             result = 0;
@@ -227,14 +290,23 @@ int ioc_start_sign(char *passphrase, char *path,
     }
     return result;
 }
-
+/**
+*   参数顺序
+*   1,UINT16 password_len
+*   2,char* passphrase
+*/
 int ioc_delete_wallet(char *passphrase){
     int result = 0;
+    UINT16 password_len;
+    password_len = strlen(passphrase);
     memset(&message, 0, sizeof(message));
-    message.header.is_ready = 0x00;
+    message.header.is_ready = 0x55;
     message.header.id = AT_M2S_DEL_WALLET;
-    message.header.len = strlen(passphrase);
-    strncpy(message.para, passphrase, strlen(passphrase));
+
+    i += big_endian_input(message.para, i, password_len);
+
+    strncpy(message.para, passphrase, password_len);
+    message.header.len = i + password_len;
     result = ioc_spi_write();
     LOGD("ioc_delete_wallet result = %d\n", result);
     if(result == 1){

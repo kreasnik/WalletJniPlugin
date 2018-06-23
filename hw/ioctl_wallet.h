@@ -18,6 +18,7 @@
 #include <android/log.h>
 #include "typedef.h"
 
+#define UINT16_LEN           2
 #define UINT_LEN             4
 #define PRIV_KEY_BIT         32
 #define BIP32_SERIALIZED_LEN 78
