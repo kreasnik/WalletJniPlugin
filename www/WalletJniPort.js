@@ -82,7 +82,7 @@
         );
     };
     //派生
-    WalletJniPort.prototype.derive = function(passphrase, path, deriveAlgoId, successCallback, errorCallback){
+    WalletJniPort.prototype.derive = function(passphrase, path, deriveAlgoId, signAlgoId, number, successCallback, errorCallback){
         console.log("WalletJniPort -- derive");
         if (errorCallback == null) {
             errorCallback = function () {
