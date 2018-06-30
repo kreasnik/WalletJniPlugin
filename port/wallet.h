@@ -20,7 +20,7 @@ int get_root_pubkey(char *derive_path,
 
 int sign_transaction(char *derive_path,
     uint16_t deriveAlgoId, uint16_t signAlgoId, uint16_t mne_number,
-    unsigned char *hash, unsigned char *pubkey, unsigned char *signature);
+    char *hash, unsigned char *pubkey, unsigned char *signature);
 
 int remove_wallet(void);
 

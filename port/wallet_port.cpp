@@ -93,15 +93,15 @@ static jint start_derive(JNIEnv *env, jobject obj, jstring passphrase, jstring p
 
 static jint start_sign(JNIEnv *env, jobject obj, jstring passphrase, jstring path, jint deriveAlgoId, jint signAlgoId, jint number, jstring transhash, jstring callback){
     jint ret = 0;
-    char pubkey[BIP32_SERIALIZED_LEN] = {0};
-    char signhash[EC_SIGNATURE_LEN] = {0};
+    unsigned char pubkey[BIP32_SERIALIZED_LEN] = {0};
+    unsigned char signhash[EC_SIGNATURE_LEN] = {0};
     LOGD("hal Device start_sign \n");
     ret = sign_transaction(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, jstringToChar(env, transhash), pubkey, signhash);
     jclass clazz = env->GetObjectClass(obj);
     LOGD("start_sign callback \n");
     jbyteArray jpubkeyarray = env->NewByteArray(BIP32_SERIALIZED_LEN);
-    jbyteArray jsignarray = env->NewByteArray(EC_SIGNATURE_LEN);
     env->SetByteArrayRegion(jpubkeyarray, 0, BIP32_SERIALIZED_LEN, (jbyte*)pubkey);
+    jbyteArray jsignarray = env->NewByteArray(EC_SIGNATURE_LEN);
     env->SetByteArrayRegion(jsignarray, 0, EC_SIGNATURE_LEN, (jbyte*)signhash);
     jmethodID mID = env->GetMethodID(clazz, "signCallback", "([B[B)V");
     env->CallVoidMethod(obj, mID, jpubkeyarray, jsignarray);
