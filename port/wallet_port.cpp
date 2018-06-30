@@ -35,15 +35,6 @@ namespace android {
 
 static const char *classPathNameRx = "com/android/walletport/WalletJniPort";
 
-static jstring charTojstring(JNIEnv* env, const char* pat) {
-    jclass strClass = (env)->FindClass("Ljava/lang/String;");
-    jmethodID ctorID = (env)->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
-    jbyteArray bytes = (env)->NewByteArray(strlen(pat));
-    (env)->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte*) pat);
-    jstring encoding = (env)->NewStringUTF("GB2312");
-    return (jstring) (env)->NewObject(strClass, ctorID, bytes, encoding);
-}
-
 static char* jstringToChar(JNIEnv* env, jstring jstr) {
     char* rtn = NULL;
     jclass clsstring = env->FindClass("java/lang/String");
@@ -77,7 +68,7 @@ static jint set_passphrase(JNIEnv *env, jobject obj, jstring passphrase){
 
 static jint create_mnemonic(JNIEnv *env, jobject obj, jstring passphrase, jstring language, jint number){
     LOGD("hal Device create_mnemonic \n");
-    return create_wallet();
+    return create_wallet(number);
 }
 
 static jint recovery_mnemonic(JNIEnv *env, jobject obj, jstring passphrase, jstring language, jint number, jstring mnemonic){
@@ -87,12 +78,16 @@ static jint recovery_mnemonic(JNIEnv *env, jobject obj, jstring passphrase, jstr
 
 static jint start_derive(JNIEnv *env, jobject obj, jstring passphrase, jstring path, jint deriveAlgoId, jint signAlgoId, jint number, jstring callback){
     jint ret = 0;
-    char pubkey[BIP32_SERIALIZED_LEN] = {0};
+    unsigned char pubkey[BIP32_SERIALIZED_LEN] = {0};
+    jint pubkey_len = BIP32_SERIALIZED_LEN;
     LOGD("hal Device start_derive \n");
-    ret = get_root_pubkey(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, pubkey);
+    ret = get_root_pubkey(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, pubkey, &pubkey_len);
     jclass clazz = env->GetObjectClass(obj);
-    jmethodID mID = env->GetMethodID(clazz, jstringToChar(env, callback), "(Ljava/lang/String;)V");
-    env->CallVoidMethod(obj, mID, pubkey);
+    LOGD("start_derive callback \n");
+    jbyteArray jarray = env->NewByteArray(BIP32_SERIALIZED_LEN);
+    env->SetByteArrayRegion(jarray, 0, BIP32_SERIALIZED_LEN, (jbyte*)pubkey);
+    jmethodID mID = env->GetMethodID(clazz, "deriveCallback", "([B)V");
+    env->CallVoidMethod(obj, mID, jarray);
     return ret;
 }
 
@@ -103,8 +98,13 @@ static jint start_sign(JNIEnv *env, jobject obj, jstring passphrase, jstring pat
     LOGD("hal Device start_sign \n");
     ret = sign_transaction(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, jstringToChar(env, transhash), pubkey, signhash);
     jclass clazz = env->GetObjectClass(obj);
-    jmethodID mID = env->GetMethodID(clazz, jstringToChar(env, callback), "(Ljava/lang/String;Ljava/lang/String;)V");
-    env->CallVoidMethod(obj, mID, pubkey, signhash);
+    LOGD("start_sign callback \n");
+    jbyteArray jpubkeyarray = env->NewByteArray(BIP32_SERIALIZED_LEN);
+    jbyteArray jsignarray = env->NewByteArray(EC_SIGNATURE_LEN);
+    env->SetByteArrayRegion(jpubkeyarray, 0, BIP32_SERIALIZED_LEN, (jbyte*)pubkey);
+    env->SetByteArrayRegion(jsignarray, 0, EC_SIGNATURE_LEN, (jbyte*)signhash);
+    jmethodID mID = env->GetMethodID(clazz, "signCallback", "([B[B)V");
+    env->CallVoidMethod(obj, mID, jpubkeyarray, jsignarray);
     return ret;
 }
 

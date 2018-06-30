@@ -8,18 +8,22 @@
 extern "C" {
 #endif
 
-int create_wallet(void);
+int create_wallet(uint16_t mne_number);
 int import_wallet(uint16_t mne_number, char *mnemonic);
 
 int change_pwd(void);
 
-int get_root_pubkey(char *derive_path, uint16_t deriveAlgoId, uint16_t signAlgoId, uint16_t mne_number, char *pubkey);
+int get_root_pubkey(char *derive_path, 
+	uint16_t deriveAlgoId, uint16_t signAlgoId, 
+	uint16_t mne_number, 
+	unsigned char *pubkey, int *pubkey_length);
 
 int sign_transaction(char *derive_path,
     uint16_t deriveAlgoId, uint16_t signAlgoId, uint16_t mne_number,
-    char *hash, char *pubkey, char *signature);
+    unsigned char *hash, unsigned char *pubkey, unsigned char *signature);
 
 int remove_wallet(void);
+
 #ifdef __cplusplus
 }
 #endif

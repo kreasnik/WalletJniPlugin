@@ -170,13 +170,13 @@ public class WalletJniPort extends CordovaPlugin{
         });
     }
 
-    public void deriveCallback(byte[] data){
-        String pubkey = byteArrayToHexStr(data);
-        Log.d(TAG, "WalletJniPort deriveCallback pubkey = " + pubkey);
-        if(pubkey != null) {
+    public void deriveCallback(byte[] pubkey){
+        String xpubkey = byteArrayToHexStr(pubkey);
+        Log.d(TAG, "WalletJniPort deriveCallback xpubkey = " + xpubkey);
+        if(xpubkey != null) {
             JSONObject obj = new JSONObject();
             try {
-                obj.put(PUBKEY, pubkey);
+                obj.put(PUBKEY, xpubkey);
             } catch (JSONException e) {
                 Log.d(TAG, "This should never happen");
             }
@@ -194,12 +194,16 @@ public class WalletJniPort extends CordovaPlugin{
         });
     }
 
-    public void signCallback(String pubkey, String signhash){
-        if(pubkey != null) {
+    public void signCallback(byte[] pubkey, byte[] signhash){
+        String xpubkey = byteArrayToHexStr(pubkey);
+        Log.d(TAG, "WalletJniPort signCallback xpubkey = " + xpubkey);
+        String xsignhash = byteArrayToHexStr(signhash);
+        Log.d(TAG, "WalletJniPort signCallback xsignhash = " + xsignhash);
+        if(xpubkey != null && xsignhash != null) {
             JSONObject obj = new JSONObject();
             try {
-                obj.put(PUBKEY, pubkey);
-                obj.put(SIGNHASH, signhash);
+                obj.put(PUBKEY, xpubkey);
+                obj.put(SIGNHASH, xsignhash);
             } catch (JSONException e) {
                 Log.d(TAG, "This should never happen");
             }
@@ -221,12 +225,12 @@ public class WalletJniPort extends CordovaPlugin{
             }
         });
     }
-    
+
     public static String byteArrayToHexStr(byte[] byteArray) {
         if (byteArray == null){
             return null;
         }
-        char[] hexArray = "0123456789ABCDEF".toCharArray();
+        char[] hexArray = "0123456789abcdef".toCharArray();
         char[] hexChars = new char[byteArray.length * 2];
         for (int j = 0; j < byteArray.length; j++) {
             int v = byteArray[j] & 0xFF;
