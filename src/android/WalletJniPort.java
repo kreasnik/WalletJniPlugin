@@ -170,7 +170,9 @@ public class WalletJniPort extends CordovaPlugin{
         });
     }
 
-    public void deriveCallback(String pubkey){
+    public void deriveCallback(byte[] data){
+        String pubkey = new String(data);
+        Log.d(TAG, "WalletJniPort deriveCallback pubkey = " + pubkey);
         if(pubkey != null) {
             JSONObject obj = new JSONObject();
             try {
