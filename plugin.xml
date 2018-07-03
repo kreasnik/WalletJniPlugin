@@ -19,6 +19,9 @@
                 <param name="android-package" value="com.android.walletport.WalletJniPort"/>
             </feature>
         </config-file>
+       
+        <source-file src="src/android/Base58.java" target-dir="src/com/android/walletport" />
+        <source-file src="src/android/Utils.java" target-dir="src/com/android/walletport" />
         <source-file src="src/android/WalletJniPort.java" target-dir="src/com/android/walletport" />
         <!-- 
         <source-file src="src/android/libwallet_port.so" target-dir="app/libs/armeabi" />
