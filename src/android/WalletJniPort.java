@@ -171,7 +171,7 @@ public class WalletJniPort extends CordovaPlugin{
     }
 
     public void deriveCallback(byte[] pubkey){
-        String xpubkey = byteArrayToHexStr(pubkey);
+        String xpubkey = Base58.encode(pubkey);
         Log.d(TAG, "WalletJniPort deriveCallback xpubkey = " + xpubkey);
         if(xpubkey != null) {
             JSONObject obj = new JSONObject();
@@ -195,9 +195,9 @@ public class WalletJniPort extends CordovaPlugin{
     }
 
     public void signCallback(byte[] pubkey, byte[] signhash){
-        String xpubkey = byteArrayToHexStr(pubkey);
+        String xpubkey = Base58.encode(pubkey);
         Log.d(TAG, "WalletJniPort signCallback xpubkey = " + xpubkey);
-        String xsignhash = byteArrayToHexStr(signhash);
+        String xsignhash = Base58.encode(signhash);
         Log.d(TAG, "WalletJniPort signCallback xsignhash = " + xsignhash);
         if(xpubkey != null && xsignhash != null) {
             JSONObject obj = new JSONObject();
