@@ -54,12 +54,12 @@ static char* jstringToChar(JNIEnv* env, jstring jstr) {
 
 static jint wallet_init(JNIEnv *env, jobject obj) {
 
-    return 1;
+    return 0;
 }
 
 static jint wallet_deinit(JNIEnv *env, jobject obj) {
 
-    return 1;
+    return 0;
 }
 static jint set_passphrase(JNIEnv *env, jobject obj, jstring passphrase){
     LOGD("hal Device set_passphrase \n");
@@ -68,18 +68,18 @@ static jint set_passphrase(JNIEnv *env, jobject obj, jstring passphrase){
 
 static jint create_mnemonic(JNIEnv *env, jobject obj, jstring passphrase, jstring language, jint number){
     LOGD("hal Device create_mnemonic \n");
-    return create_wallet(number);
+    return create_wallet();
 }
 
 static jint recovery_mnemonic(JNIEnv *env, jobject obj, jstring passphrase, jstring language, jint number, jstring mnemonic){
     LOGD("hal Device recovery_mnemonic \n");
-    return import_wallet(number, jstringToChar(env, mnemonic));
+    return import_wallet();
 }
 
 static jint start_derive(JNIEnv *env, jobject obj, jstring passphrase, jstring path, jint deriveAlgoId, jint signAlgoId, jint number, jstring callback){
-    jint ret = 0;
+    jint ret = 1;
     unsigned char pubkey[BIP32_SERIALIZED_LEN] = {0};
-    jint pubkey_len = BIP32_SERIALIZED_LEN;
+    uint32_t pubkey_len = BIP32_SERIALIZED_LEN;
     LOGD("hal Device start_derive \n");
     ret = get_root_pubkey(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, pubkey, &pubkey_len);
     jclass clazz = env->GetObjectClass(obj);
@@ -92,11 +92,13 @@ static jint start_derive(JNIEnv *env, jobject obj, jstring passphrase, jstring p
 }
 
 static jint start_sign(JNIEnv *env, jobject obj, jstring passphrase, jstring path, jint deriveAlgoId, jint signAlgoId, jint number, jstring transhash, jstring callback){
-    jint ret = 0;
+    jint ret = 1;
     unsigned char pubkey[BIP32_SERIALIZED_LEN] = {0};
     unsigned char signhash[EC_SIGNATURE_LEN] = {0};
+    uint32_t pubkey_len = BIP32_SERIALIZED_LEN;
+    uint32_t signhash_len = EC_SIGNATURE_LEN;
     LOGD("hal Device start_sign \n");
-    ret = sign_transaction(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, jstringToChar(env, transhash), pubkey, signhash);
+    ret = sign_transaction(jstringToChar(env, path), deriveAlgoId, signAlgoId, number, jstringToChar(env, transhash), strlen(jstringToChar(env, transhash)), pubkey, &pubkey_len, signhash, &signhash_len);
     jclass clazz = env->GetObjectClass(obj);
     LOGD("start_sign callback \n");
     jbyteArray jpubkeyarray = env->NewByteArray(BIP32_SERIALIZED_LEN);

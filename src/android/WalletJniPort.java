@@ -127,10 +127,10 @@ public class WalletJniPort extends CordovaPlugin{
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 int ret = set_passphrase(passphrase);
-                if(ret == 1){
+                if(ret == 0){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
-                    WalletJniPort.this.callbackContext.error("setPassphrase failed");
+                    WalletJniPort.this.callbackContext.error(ret);
                 }
             }
         });
@@ -140,10 +140,10 @@ public class WalletJniPort extends CordovaPlugin{
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 int ret = create_mnemonic(passphrase, language, Integer.parseInt(number));
-                if(ret == 1){
+                if(ret == 0){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
-                    WalletJniPort.this.callbackContext.error("createMnemonic failed");
+                    WalletJniPort.this.callbackContext.error(ret);
                 }
             }
         });
@@ -153,10 +153,10 @@ public class WalletJniPort extends CordovaPlugin{
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 int ret = recovery_mnemonic(passphrase, language, Integer.parseInt(number), mnemonic);
-                if(ret == 1){
+                if(ret == 0){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
-                    WalletJniPort.this.callbackContext.error("recovery_mnemonic failed");
+                    WalletJniPort.this.callbackContext.error(ret);
                 }
             }
         });
@@ -218,10 +218,10 @@ public class WalletJniPort extends CordovaPlugin{
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
                 int ret = delete_wallet(passphrase);
-                if(ret == 1){
+                if(ret == 0){
                     WalletJniPort.this.callbackContext.success("ok");
                 }else{
-                    WalletJniPort.this.callbackContext.error("delete_wallet failed");
+                    WalletJniPort.this.callbackContext.error(ret);
                 }
             }
         });
